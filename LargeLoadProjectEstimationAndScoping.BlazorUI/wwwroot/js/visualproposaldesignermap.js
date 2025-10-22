@@ -265,6 +265,26 @@
         map.addControl(drawControl);
     }
 
+    // New: remove/hide the draw controls from the map.
+    // Use this from Blazor: `VisualProposalDesignerMap.removeDrawControls()` (or `stopDrawing()` alias).
+    function removeDrawControls() {
+        try {
+            if (drawControl && map) {
+                try { map.removeControl(drawControl); } catch (e) { /* no-op */ }
+            }
+        } catch (e) { /* no-op */ }
+        drawControl = null;
+
+        // Optionally remove any lingering toolbar DOM nodes (defensive)
+        try {
+            const toolbars = document.querySelectorAll('.leaflet-draw-toolbar, .leaflet-draw-toolbar-top, .leaflet-draw-toolbar-bottom');
+            toolbars.forEach(n => n.parentNode && n.parentNode.removeChild(n));
+        } catch (e) { /* no-op */ }
+    }
+
+    // alias for clarity
+    const stopDrawing = removeDrawControls;
+
     function getScratchAndClear(name, type, colorHex) {
         if (scratchFeatures.length === 0) return "";
         const color = (typeof colorHex === 'string' && colorHex.trim()) ? colorHex : theme.accent;
@@ -318,6 +338,9 @@
         invalidateSize,
         startDrawing,
         getScratchAndClear,
-        updateCurrentRevision
+        updateCurrentRevision,
+        // exposed removal function(s)
+        removeDrawControls,
+        stopDrawing
     };
 })();

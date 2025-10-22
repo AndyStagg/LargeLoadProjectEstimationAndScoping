@@ -5,6 +5,7 @@
 
 @inject IJSRuntime JS
 @inject GISDataService _gisDataService
+@inject GeoJsonDistanceService _geoJsonDistanceService
 @implements IAsyncDisposable
 
 <Section Title="Visual Proposal Designer">
@@ -42,8 +43,8 @@
                             {
                                 <div class="grid-row">
                                     <div class="grid-cell">@tline.Name</div>
-                                    <div class="grid-cell"></div>
-                                    <div class="grid-cell"></div>
+                                    <div class="grid-cell">@tline.PointCount</div>
+                                    <div class="grid-cell">@tline.LengthMiles</div>
                                 </div>
                             }
                         }
@@ -55,8 +56,10 @@
                     <div>
                         <label>
                             TLine Name
-                            <input class="input" @bind="newTlineName" placeholder="Enter TLine Name..." />
-                            <button class="btn btn-primary" @onclick='() => BeginDrawTLine()'>Add OH/UG Segment</button>
+                            <input class="input" @bind="newTlineName" @bind:event="oninput" placeholder="Enter TLine Name..." />
+                            <button class="btn btn-primary"
+                                @onclick='() => BeginDrawTLine()'
+                                disabled="@(string.IsNullOrWhiteSpace(newTlineName))">Add OH/UG Segment</button>
                         </label>
                     </div>
                 }
@@ -215,6 +218,7 @@
 
     public async Task CompleteDrawDataCenterBoundry()
     {
+        //await JS.InvokeVoidAsync("VisualProposalDesignerMap.removeDrawControls");
         var geojson = await JS.InvokeAsync<string>("VisualProposalDesignerMap.getScratchAndClear", "", "polygon", "#4FC3F7");
 
         if (string.IsNullOrWhiteSpace(geojson)) return;
@@ -243,6 +247,7 @@
 
     public async Task CompleteDrawTLine()
     {
+        //await JS.InvokeVoidAsync("VisualProposalDesignerMap.removeDrawControls");
         var geojson = await JS.InvokeAsync<string>("VisualProposalDesignerMap.getScratchAndClear", "", "polyline", "#000FFF");
 
         if (string.IsNullOrWhiteSpace(geojson)) return;
@@ -253,13 +258,17 @@
             CurrentModel.TLines = new List<FeatureModel>();
         }
 
+        var distanceAndPoints = _geoJsonDistanceService.CalculateTotalMiles(geojson);
+
         CurrentModel.TLines.Add(new FeatureModel
         {
             Name = newTlineName,
             Category = "tline",
             UnderlyingType = "Polyline",
             GeoJson = geojson,
-            Color = "#000FFF"
+            Color = "#000FFF",
+            LengthMiles = Math.Round(distanceAndPoints.miles, 2),
+            PointCount = distanceAndPoints.points
         });
 
         await RefreshCurrentModelOnMap();
@@ -299,6 +308,8 @@
         public string UnderlyingType { get; set; } = "Polyline";
         public string GeoJson { get; set; } = "";
         public string? Color { get; set; }
+        public double? LengthMiles { get; set; } = null;
+        public int? PointCount { get; set; } = null;
     }
 
     public class ProposalModel

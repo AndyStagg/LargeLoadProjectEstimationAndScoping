@@ -15,6 +15,7 @@ internal class Program
 
         builder.Services.AddSingleton<DataCenterProjectDataService>();
         builder.Services.AddSingleton<ProjectDataService>();
+        builder.Services.AddSingleton<GeoJsonDistanceService>();
 
         // HttpClient is scoped in WASM
         builder.Services.AddScoped(sp => new HttpClient
