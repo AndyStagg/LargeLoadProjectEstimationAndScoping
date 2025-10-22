@@ -1,0 +1,48 @@
+﻿@page "/"
+@using LargeLoadProjectEstimationAndScoping.BlazorUI.Models
+@using LargeLoadProjectEstimationAndScoping.BlazorUI.Services
+@inject DataCenterProjectDataService _projectCenterDataService
+@inject NavigationManager _navigationManager
+
+<PageTitle>Project Overview</PageTitle>
+
+<Section Title="Data Center Projects">
+    <div class="grid grid-3">
+        <div class="grid-row">
+            <div class="grid-cell"><strong>Name</strong></div>
+            <div class="grid-cell"><strong>Status</strong></div>
+            <div class="grid-cell"><strong></strong></div>
+        </div>
+
+        @if (_dataCenters != null && _dataCenters.Count > 0)
+        {
+            @foreach (var dataCenter in _dataCenters)
+            {
+                <div class="grid-row">
+                    <div class="grid-cell">@dataCenter.Name</div>
+                    <div class="grid-cell">@* @dataCenter.Status *@</div>
+                    <div class="grid-cell">
+                        <button class="btn btn-primary" @onclick='() => _navigationManager.NavigateTo($"/data-center/{dataCenter.Id}")'>Details</button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="grid-row">
+                <div class="grid-cell" colspan="3">No Data Center Projects found.</div>
+            </div>
+        }
+    </div>
+</Section>
+
+@code {
+    private List<DataCenterProject> _dataCenters = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dataCenters = await _projectCenterDataService.GetDataCenterProjectsAsync();
+    }
+}
+
+<style></style>

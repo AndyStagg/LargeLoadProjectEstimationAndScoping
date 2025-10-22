@@ -1,0 +1,151 @@
+﻿@inherits ComponentBase
+
+<section class="@RootClass"
+         style="@InlineStyle"
+         aria-disabled="@Disabled"
+         data-collapsible="@Collapsible">
+
+    <header class="gbx-header">
+        <div class="gbx-title-wrap">
+            @if (!string.IsNullOrWhiteSpace(Icon))
+            {
+                <span class="gbx-icon" aria-hidden="true">@((MarkupString)Icon)</span>
+            }
+
+            @if (HeaderContent is not null)
+            {
+                @HeaderContent
+            }
+            else
+            {
+                <div class="gbx-titles">
+                    @if (!string.IsNullOrWhiteSpace(Title))
+                    {
+                        <h3 class="gbx-title">@Title</h3>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Subtitle))
+                    {
+                        <div class="gbx-subtitle">@Subtitle</div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="gbx-actions">
+            @if (Actions is not null)
+            {
+                @Actions
+            }
+
+            @if (Collapsible)
+            {
+                <button type="button"
+                        class="gbx-toggle"
+                        @onclick="Toggle"
+                        aria-expanded="@(!Collapsed)"
+                        aria-label="@(Collapsed ? "Expand section" : "Collapse section")"
+                        disabled="@Disabled">
+                    <span class="gbx-toggle-indicator">@((Collapsed) ? "▸" : "▾")</span>
+                </button>
+            }
+        </div>
+    </header>
+
+    @if (!Collapsed)
+    {
+        <div class="gbx-body" role="region" aria-label="@Title">
+            @ChildContent
+        </div>
+
+       @*  @if (FooterContent is not null)
+        {
+            <footer class="gbx-footer">
+                @FooterContent
+            </footer>
+        } *@
+    }
+</section>
+
+@code {
+    // Content
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // Header slots / props
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+    /// <summary>
+    /// Optional inline icon markup (e.g., an SVG or emoji). Example: Icon="🔧"
+    /// Or pass an SVG as string: Icon="@MySvgMarkup"
+    /// </summary>
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public RenderFragment? HeaderContent { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    // Behavior
+    [Parameter] public bool Collapsible { get; set; } = true;
+    [Parameter] public bool StartCollapsed { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; }
+
+    // Appearance
+    /// <summary>
+    /// Any valid CSS color. Falls back to CSS var defined in .razor.css.
+    /// </summary>
+    [Parameter] public string? AccentColor { get; set; }
+    /// <summary>
+    /// Compact paddings and smaller text.
+    /// </summary>
+    [Parameter] public bool Dense { get; set; }
+    /// <summary>
+    /// Remove outer border if true.
+    /// </summary>
+    [Parameter] public bool Borderless { get; set; }
+
+    // Controlled/Uncontrolled collapse (two-way optional)
+    private bool _collapsed;
+    [Parameter]
+    public bool Collapsed
+    {
+        get => _collapsed;
+        set
+        {
+            if (_collapsed != value)
+            {
+                _collapsed = value;
+                CollapsedChanged.InvokeAsync(value);
+            }
+        }
+    }
+    [Parameter] public EventCallback<bool> CollapsedChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // If not bound by parent, seed from StartCollapsed
+        if (!CollapsedChanged.HasDelegate)
+            _collapsed = StartCollapsed;
+        else
+            _collapsed = Collapsed;
+    }
+
+    private void Toggle()
+    {
+        if (Disabled) return;
+
+        if (CollapsedChanged.HasDelegate)
+        {
+            CollapsedChanged.InvokeAsync(!Collapsed);
+        }
+        else
+        {
+            _collapsed = !_collapsed;
+        }
+    }
+
+    private string RootClass =>
+        $"gbx-root {(Dense ? "gbx-dense" : "")} {(Borderless ? "gbx-borderless" : "")} {(Disabled ? "gbx-disabled" : "")}";
+
+    private string InlineStyle =>
+        string.IsNullOrWhiteSpace(AccentColor)
+            ? null
+            : $"--gbx-accent:{AccentColor};"
+            ;
+}

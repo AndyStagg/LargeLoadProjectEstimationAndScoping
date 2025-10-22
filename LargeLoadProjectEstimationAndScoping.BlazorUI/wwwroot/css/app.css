@@ -1,0 +1,127 @@
+:root {
+    --bg: #373735;
+    --fg: #EAEAEA;
+    --accent: #F3B133; /* Gold */
+    --accent2: #FF6A38; /* Orange */
+    --accent3: #33CEFC; /* Cyan */
+    --g1: #23333E; /* Dark Grey */
+    --g2: #334E60; /* Medium Grey */
+    --g3: #618193; /* Light Grey */
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: 'Lato', 'Open Sans', Arial, sans-serif;
+    font-weight: 400;
+    padding: 24px 48px; /* top/bottom = 24px, left/right = 48px */
+    max-width: 1600px; /* optional: constrain very wide monitors */
+    margin: 0 auto; /* centers content */
+    background: var(--bg);
+    color: var(--fg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    color: var(--fg);
+    letter-spacing: 0.4px;
+    margin-top: 0;
+}
+
+nav {
+    margin: 10px 0px;
+}
+
+.grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.grid-2 {
+    grid-template-columns: 1.1fr 1.1fr;
+}
+
+.grid-3 {
+    grid-template-columns: 1.1fr 1.1fr 1.1fr;
+}
+
+.grid-4 {
+    grid-template-columns: 1.1fr 1.1fr 1.1fr 1.1fr;
+}
+
+.grid-5 {
+    grid-template-columns: 1.1fr 1.1fr 1.1fr 1.1fr 1.1fr;
+}
+
+.grid-row {
+    display: contents;
+}
+
+.grid-cell {
+
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: .2px;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #1d1c1a;
+    border: 1px solid var(--accent);
+}
+
+.btn-primary:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.input, select, textarea {
+    background: #2d2d2b;
+    color: var(--fg);
+    border: 1px solid var(--fg);
+    padding: 8px 10px;
+    border-radius: 10px;
+}
+
+.input:focus, select:focus, textarea:focus {
+    border-color: var(--accent); /* Change border color to gold on focus */
+    outline: none; /* Remove default outline */
+}
+
+a {
+    font-family: inherit;
+    color: var(--fg); /* same as normal text (#EAEAEA) */
+    text-decoration: none; /* removes underline */
+    transition: color 0.15s ease-in; /* smooth hover fade */
+}
+
+a:hover,
+a:focus {
+    color: var(--accent); /* highlight gold (#F3B133) */
+    text-decoration: underline; /* optional: underline on hover for clarity */
+}
+
+a:visited {
+    color: var(--fg); /* keep same color even after visited */
+}
+
+.hr-primary {
+    border: 0;
+    border-top: 3px solid currentColor;
+    margin: 3px 0 6px 0;
+}
+
+.hr-secondary {
+    border: 0;
+    border-top: 2px solid currentColor;
+    margin: 3px 0 6px 0;
+}

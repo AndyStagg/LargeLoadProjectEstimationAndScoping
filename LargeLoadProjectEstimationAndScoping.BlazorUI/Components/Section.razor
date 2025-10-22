@@ -1,0 +1,29 @@
+﻿<div class="section-container">
+    <h4>@Title</h4>
+    <hr class="hr-secondary" />
+    <div class="section-content">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] 
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter] 
+    public RenderFragment? ChildContent { get; set; }
+}
+
+<style>
+.section-container {
+    margin-bottom: 1rem;
+}
+
+.section-container h4 {
+    margin-bottom: 0;
+}
+
+.section-content {
+    padding: 1px;
+}
+</style>

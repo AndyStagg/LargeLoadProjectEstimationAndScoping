@@ -1,0 +1,111 @@
+﻿@page "/data-center/{DataCenterGuid:guid}"
+@using LargeLoadProjectEstimationAndScoping.BlazorUI.Services
+@using LargeLoadProjectEstimationAndScoping.BlazorUI.Models
+
+@inject DataCenterProjectDataService _dataCenterProjectDataService
+@inject ProjectDataService _projectDataService
+@inject NavigationManager _navigationManager
+
+@if (_dataCenter != null && !_isLoading)
+{
+    <h3 style="margin-bottom: 10px;">Data Center - @_dataCenter.Name</h3>
+}
+else
+{
+    <h3 style="margin-bottom: 10px;">Data Center Details</h3>
+}
+
+@if (_isLoading)
+{
+    <p>Loading data center details...</p>
+}
+else if (_dataCenter != null)
+{
+    <div>
+        <Section Title="Visual Design Proposals">
+            <div>
+                <!-- List of Proposals-->
+            </div>
+            <div>
+                <label>
+                    Create Proposal
+                    <input class="input" @bind="newProposalName" @bind:event="oninput" placeholder="Enter proposal name.." />
+                    <button class="btn btn-primary"
+                        @onclick='() => _navigationManager.NavigateTo($"/data-center/{DataCenterGuid}/designer/{newProposalName}")'
+                        disabled="@(string.IsNullOrWhiteSpace(newProposalName))">New</button>
+                </label>
+            </div>
+        </Section>
+
+        <Section Title="Associated Projects">
+            <div class="grid grid-5">
+                <div class="grid-row">
+                    <div class="grid-cell"><strong>Name</strong></div>
+                    <div class="grid-cell"><strong>Description</strong></div>
+                    <div class="grid-cell"><strong>Order Number</strong></div>
+                    <div class="grid-cell"><strong>Function Number</strong></div>
+                    <div class="grid-cell"><strong>Status</strong></div>
+                </div>
+
+                @if (_projects != null && _projects.Count > 0)
+                {
+                    @foreach (var project in _projects)
+                    {
+                        <div class="grid-row">
+                            <div class="grid-cell">@project.Name</div>
+                            <div class="grid-cell">@project.Description</div>
+                            <div class="grid-cell">@project.OrderNum</div>
+                            <div class="grid-cell">@project.FuncNum</div>
+                            <div class="grid-cell">@project.Status</div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No projects found for this data center.</p>
+                }
+
+            </div>
+        </Section>
+    </div>
+}
+else
+{
+    <p>Data center not found.</p>
+}
+
+@code {
+    [Parameter]
+    public Guid DataCenterGuid { get; set; }
+
+    private bool _isLoading = false;
+    private DataCenterProject? _dataCenter;
+    private List<Project>? _projects;
+
+    private string newProposalName = "";
+
+    protected override void OnInitialized()
+    {
+        
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+
+        try
+        {
+            await Task.Delay(400);
+            _dataCenter = await _dataCenterProjectDataService.GetDataCenterPojectAsync(DataCenterGuid);
+            _projects = await _projectDataService.GetProjectsAsync(DataCenterGuid);
+        }
+        catch (Exception ex)
+        {
+            // Handle exceptions (e.g., log error, show message to user)
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

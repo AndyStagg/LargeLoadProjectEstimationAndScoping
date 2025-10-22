@@ -1,0 +1,316 @@
+﻿@page "/data-center/{DataCenterGuid:guid}/designer/{Proposal}"
+@using LargeLoadProjectEstimationAndScoping.BlazorUI.Models
+@using LargeLoadProjectEstimationAndScoping.BlazorUI.Services
+@using LargeLoadProjectEstimationAndScoping.BlazorUI.Utils
+
+@inject IJSRuntime JS
+@inject GISDataService _gisDataService
+@implements IAsyncDisposable
+
+<Section Title="Visual Proposal Designer">
+    <div class="grid grid-2">
+        <div>
+            <GroupBox Title="Data Center">
+                @if (CurrentModel != null && CurrentModel.DataCenter == null)
+                {
+                    <button class="btn btn-primary" @onclick='() => BeginDrawDataCenterBoundry()'>Add Data Center Boundry</button>
+                }
+                else
+                {
+                    <div>
+                        <div>Datacenter defined</div>
+                        <div>
+                            placeholder....
+                        </div>
+                    </div>
+                }
+            </GroupBox>
+            <GroupBox Title="Transmission OH / UG">
+
+                @if (CurrentModel != null && CurrentModel.DataCenter != null)
+                {
+                    <div class="grid grid-3">
+                        <div class="grid-row">
+                            <div class="grid-cell"><strong>Name</strong></div>
+                            <div class="grid-cell"><strong>Structures</strong></div>
+                            <div class="grid-cell"><strong>Miles</strong></div>
+                        </div>
+
+                        @if (CurrentModel.TLines != null && CurrentModel.TLines.Any())
+                        {
+                            @foreach (var tline in CurrentModel?.TLines)
+                            {
+                                <div class="grid-row">
+                                    <div class="grid-cell">@tline.Name</div>
+                                    <div class="grid-cell"></div>
+                                    <div class="grid-cell"></div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p>Please define a t line...</p>
+                        }
+                    </div>
+                    <div>
+                        <label>
+                            TLine Name
+                            <input class="input" @bind="newTlineName" placeholder="Enter TLine Name..." />
+                            <button class="btn btn-primary" @onclick='() => BeginDrawTLine()'>Add OH/UG Segment</button>
+                        </label>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        Please define a Data Center...
+                    </div>
+                }
+                
+            </GroupBox>
+        </div>
+        <div>
+            <!-- Map -->
+            <div id="map" style="height:65vh; border:1px solid var(--accent); border-radius:12px;"></div>
+        </div>
+    </div>
+</Section>
+
+@code {
+    [Parameter]
+    public Guid DataCenterGuid { get; set; }
+
+    [Parameter]
+    public string? Proposal { get; set; }
+
+    public ProposalModel? CurrentModel { get; set; }
+
+    private DotNetObjectReference<VisualProposalDesigner>? selfRef;
+    private int scratchCount = 0;
+
+    private string currentScratchCat = "";
+
+    private string newTlineName = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Always ensure the JS map is initialized when the component renders.
+        // The JS init is idempotent and will return early if the map already exists.
+        await JS.InvokeVoidAsync("VisualProposalDesignerMap.init");
+
+        if (firstRender)
+        {
+            selfRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("VisualProposalDesignerMap.setScratchNotifier", selfRef);
+
+            await LoadGISData();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Proposal) && Guid.TryParse(Proposal, out var proposalGuid))
+        {
+            // Load Existing Proposal by Guid
+            await Task.Delay(100);
+        }
+        else if (!string.IsNullOrWhiteSpace(Proposal))
+        {
+            // New Proposal by Name
+            CurrentModel = new ProposalModel
+            {
+                Id = Guid.NewGuid(),
+                Name = Proposal,
+                //IsActive = true,
+                // DataCenter = new FeatureModel
+                // {
+                //     Name = "Data Center Location",
+                //     Category = "DataCenter",
+                //     UnderlyingType = "Point",
+                //     GeoJson = "", // To be filled in with actual location data
+                //     Color = "#FF0000"
+                // }
+            };
+        }
+    }
+
+    private async Task LoadGISData()
+    {
+        var gisData = await _gisDataService.GetDataAsync();
+
+        // Build GeoJSON payloads
+        var fencesGeoJson = GeoJsonBuilder.BuildFacilityFences((gisData.ElectricFacilityFence ?? new()).ToArray());
+
+        var ugGroups = (gisData.UGLineSegment ?? new List<UGLineSegment>())
+            .Select(u => (layerName: "UGLineSegment",
+                          name: u.Attributes?.tline_nm,
+                          extra1: u.Attributes?.nominal_voltage,
+                          lines: u.Polylines))
+            .ToList();
+
+        var ugGeoJson = GeoJsonBuilder.BuildLineSegments<UGLineSegmentAttributes>(ugGroups, _ => default);
+
+        var ohGroups = (gisData.OHLineSegment ?? new List<OHLineSegment>())
+            .Select(o => (layerName: "OHLineSegment",
+                          name: o.Attributes?.tline_nm,
+                          extra1: o.Attributes?.ratedkv ?? o.Attributes?.status,
+                          lines: o.Polylines))
+            .ToList();
+
+        var ohGeoJson = GeoJsonBuilder.BuildLineSegments<OHLineSegmentAttributes>(ohGroups, _ => default);
+
+        // Push layers to JS
+        await JS.InvokeVoidAsync("VisualProposalDesignerMap.addOrReplaceGeoJsonLayer", "fences", fencesGeoJson, new
+        {
+            stroke = true,
+            weight = 2,
+            fillOpacity = 0.2
+        });
+
+        await JS.InvokeVoidAsync("VisualProposalDesignerMap.addOrReplaceGeoJsonLayer", "ug", ugGeoJson, new
+        {
+            weight = 3,
+            dashArray = "4,4"
+        });
+
+        await JS.InvokeVoidAsync("VisualProposalDesignerMap.addOrReplaceGeoJsonLayer", "oh", ohGeoJson, new
+        {
+            weight = 3
+        });
+    }
+
+    private async Task RefreshCurrentModelOnMap()
+    {
+        var currentFeatures = new List<object>();
+        if (CurrentModel?.DataCenter != null) currentFeatures.Add(CurrentModel.DataCenter);
+        if (CurrentModel?.TLines != null && CurrentModel.TLines.Any())
+        {
+            foreach (var tline in CurrentModel.TLines)
+            {
+                currentFeatures.Add(tline);
+            }
+        }
+
+        var rev = new[]
+        {
+            new
+            {
+                id = CurrentModel?.Id,
+                name = CurrentModel?.Name,
+                features = currentFeatures
+            }
+        };
+
+        var json = System.Text.Json.JsonSerializer.Serialize(rev);
+        await JS.InvokeVoidAsync("VisualProposalDesignerMap.updateCurrentRevision",  json);
+    }
+
+    public async Task BeginDrawDataCenterBoundry()
+    {
+        currentScratchCat = "datacenter";
+        var type = "polygon";
+
+        await JS.InvokeVoidAsync("VisualProposalDesignerMap.startDrawing", type, "#4FC3F7");
+    }
+
+    public async Task CompleteDrawDataCenterBoundry()
+    {
+        var geojson = await JS.InvokeAsync<string>("VisualProposalDesignerMap.getScratchAndClear", "", "polygon", "#4FC3F7");
+
+        if (string.IsNullOrWhiteSpace(geojson)) return;
+
+        CurrentModel!.DataCenter = new FeatureModel
+        {
+            Name = "Data Center Boundry",
+            Category = "DataCenter",
+            UnderlyingType = "Polygon",
+            GeoJson = geojson,
+            Color = "#4FC3F7"
+        };
+
+        await RefreshCurrentModelOnMap();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task BeginDrawTLine()
+    {
+        currentScratchCat = "tline";
+        var type = "polyline";
+
+        await JS.InvokeVoidAsync("VisualProposalDesignerMap.startDrawing", type, "#000FFF");
+    }
+
+    public async Task CompleteDrawTLine()
+    {
+        var geojson = await JS.InvokeAsync<string>("VisualProposalDesignerMap.getScratchAndClear", "", "polyline", "#000FFF");
+
+        if (string.IsNullOrWhiteSpace(geojson)) return;
+
+        if (CurrentModel == null) return;
+        if (CurrentModel.TLines == null)
+        {
+            CurrentModel.TLines = new List<FeatureModel>();
+        }
+
+        CurrentModel.TLines.Add(new FeatureModel
+        {
+            Name = newTlineName,
+            Category = "tline",
+            UnderlyingType = "Polyline",
+            GeoJson = geojson,
+            Color = "#000FFF"
+        });
+
+        await RefreshCurrentModelOnMap();
+
+        newTlineName = string.Empty;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnScratchChanged(int count)
+    {
+        scratchCount = count;
+
+        if (currentScratchCat == "datacenter")
+        {
+            CompleteDrawDataCenterBoundry();
+        }
+        else if (currentScratchCat == "tline")
+        {
+            CompleteDrawTLine();
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try { await JS.InvokeVoidAsync("VisualProposalDesignerMap.dispose"); } catch { }
+        selfRef?.Dispose();
+    }
+
+    public class FeatureModel
+    {
+        public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string UnderlyingType { get; set; } = "Polyline";
+        public string GeoJson { get; set; } = "";
+        public string? Color { get; set; }
+    }
+
+    public class ProposalModel
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public bool IsActive { get; set; }
+        public bool Visible { get; set; } = true;
+
+        public FeatureModel? DataCenter { get; set; }
+
+        public List<FeatureModel>? TLines { get; set; }
+    }
+}
+

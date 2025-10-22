@@ -1,0 +1,40 @@
+﻿<div class="groupbox-container">
+    <div class="groupbox-header">
+        <h4>@Title</h4>
+    </div>
+
+    <div class="groupbox-content">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}
+
+<style>
+    .groupbox-container {
+        border: 1px solid currentColor;
+        border-radius: 6px;    
+        margin-bottom: 1rem;
+        background-color: #2f2f2f; /* optional if you're using a dark theme */
+    }
+
+    .groupbox-header {      
+        border-bottom: 2px solid currentColor;
+    }
+
+    .groupbox-header h4 {
+        margin: 0.1rem 0 0 0.25rem;
+    }
+
+    .groupbox-content {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+        margin: 0.25rem;
+    }
+</style>
