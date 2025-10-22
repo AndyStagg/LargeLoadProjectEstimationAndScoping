@@ -218,7 +218,6 @@
 
     public async Task CompleteDrawDataCenterBoundry()
     {
-        //await JS.InvokeVoidAsync("VisualProposalDesignerMap.removeDrawControls");
         var geojson = await JS.InvokeAsync<string>("VisualProposalDesignerMap.getScratchAndClear", "", "polygon", "#4FC3F7");
 
         if (string.IsNullOrWhiteSpace(geojson)) return;
@@ -247,7 +246,6 @@
 
     public async Task CompleteDrawTLine()
     {
-        //await JS.InvokeVoidAsync("VisualProposalDesignerMap.removeDrawControls");
         var geojson = await JS.InvokeAsync<string>("VisualProposalDesignerMap.getScratchAndClear", "", "polyline", "#000FFF");
 
         if (string.IsNullOrWhiteSpace(geojson)) return;

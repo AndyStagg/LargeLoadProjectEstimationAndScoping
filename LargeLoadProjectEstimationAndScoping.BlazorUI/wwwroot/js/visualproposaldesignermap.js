@@ -302,6 +302,7 @@
         scratchFeatures = [];
         notifyScratchChanged();
         if (drawnItems) drawnItems.clearLayers();
+        removeDrawControls();
         return json;
     }
 
