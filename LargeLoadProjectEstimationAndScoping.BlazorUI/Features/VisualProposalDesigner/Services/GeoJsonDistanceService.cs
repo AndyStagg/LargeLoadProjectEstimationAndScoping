@@ -24,12 +24,9 @@
 //
 // The following file implements the above plan.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 
-namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Services
+namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Features.VisualProposalDesigner.Services
 {
     public interface IGeoJsonDistanceService
     {

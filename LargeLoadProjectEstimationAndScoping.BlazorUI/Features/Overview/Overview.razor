@@ -1,7 +1,9 @@
 ﻿@page "/"
-@using LargeLoadProjectEstimationAndScoping.BlazorUI.Models
-@using LargeLoadProjectEstimationAndScoping.BlazorUI.Services
-@inject DataCenterProjectDataService _projectCenterDataService
+
+@using LargeLoadProjectEstimationAndScoping.Core.Domain.Models;
+@using LargeLoadProjectEstimationAndScoping.Core.Abstractions;
+
+@inject IDataCenterProjectDataService _projectCenterDataService
 @inject NavigationManager _navigationManager
 
 <PageTitle>Project Overview</PageTitle>

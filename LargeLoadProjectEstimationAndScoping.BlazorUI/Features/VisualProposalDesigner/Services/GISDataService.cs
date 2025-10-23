@@ -1,7 +1,7 @@
-﻿using LargeLoadProjectEstimationAndScoping.BlazorUI.Models;
+﻿using LargeLoadProjectEstimationAndScoping.BlazorUI.Features.VisualProposalDesigner.Models;
 using System.Text.Json;
 
-namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Services
+namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Features.VisualProposalDesigner.Services
 {
     public class GISDataService
     {

@@ -1,9 +1,10 @@
 ﻿@page "/data-center/{DataCenterGuid:guid}"
-@using LargeLoadProjectEstimationAndScoping.BlazorUI.Services
-@using LargeLoadProjectEstimationAndScoping.BlazorUI.Models
 
-@inject DataCenterProjectDataService _dataCenterProjectDataService
-@inject ProjectDataService _projectDataService
+@using LargeLoadProjectEstimationAndScoping.Core.Abstractions
+@using LargeLoadProjectEstimationAndScoping.Core.Domain.Models
+
+@inject IDataCenterProjectDataService _dataCenterProjectDataService
+@inject IProjectDataService _projectDataService
 @inject NavigationManager _navigationManager
 
 @if (_dataCenter != null && !_isLoading)

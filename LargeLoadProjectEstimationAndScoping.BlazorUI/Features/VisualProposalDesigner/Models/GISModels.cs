@@ -1,4 +1,4 @@
-﻿namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Models
+﻿namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Features.VisualProposalDesigner.Models
 {
     public class ETGISData
     {

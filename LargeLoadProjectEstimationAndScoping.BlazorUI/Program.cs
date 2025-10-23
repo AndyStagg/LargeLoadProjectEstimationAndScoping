@@ -1,5 +1,6 @@
 using LargeLoadProjectEstimationAndScoping.BlazorUI;
-using LargeLoadProjectEstimationAndScoping.BlazorUI.Services;
+using LargeLoadProjectEstimationAndScoping.BlazorUI.Features.VisualProposalDesigner.Services;
+using LargeLoadProjectEstimationAndScoping.Infrastructure;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -13,8 +14,11 @@ internal class Program
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-        builder.Services.AddSingleton<DataCenterProjectDataService>();
-        builder.Services.AddSingleton<ProjectDataService>();
+        var dev = true;
+
+        builder.Services.AddDataCenterProjectDataService(dev);
+        builder.Services.AddProjectDataService(dev);
+
         builder.Services.AddSingleton<GeoJsonDistanceService>();
 
         // HttpClient is scoped in WASM

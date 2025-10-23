@@ -1,4 +1,6 @@
-﻿namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Models
+﻿using System;
+
+namespace LargeLoadProjectEstimationAndScoping.Core.Domain.Models
 {
     public class DataCenterProject
     {
