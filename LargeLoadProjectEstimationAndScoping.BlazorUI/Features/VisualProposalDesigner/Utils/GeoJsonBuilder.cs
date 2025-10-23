@@ -1,8 +1,8 @@
-﻿using LargeLoadProjectEstimationAndScoping.BlazorUI.Models;
+﻿using LargeLoadProjectEstimationAndScoping.BlazorUI.Features.VisualProposalDesigner.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Utils
+namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Features.VisualProposalDesigner.Utils
 {
     public static class GeoJsonBuilder
     {
@@ -33,7 +33,7 @@ namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Utils
                     features.Add(new
                     {
                         type = "Feature",
-                        properties = new { name_ets = f.Attributes?.name_ets, layer = "ElectricFacilityFence" },
+                        properties = new { f.Attributes?.name_ets, layer = "ElectricFacilityFence" },
                         geometry = new
                         {
                             type = "Polygon",

@@ -1,12 +1,17 @@
-﻿using LargeLoadProjectEstimationAndScoping.BlazorUI.Models;
+﻿using LargeLoadProjectEstimationAndScoping.Core.Abstractions;
+using LargeLoadProjectEstimationAndScoping.Core.Domain.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace LargeLoadProjectEstimationAndScoping.BlazorUI.Services
+namespace LargeLoadProjectEstimationAndScoping.Infrastructure.Services
 {
-    public class DataCenterProjectDataService
+    public class DevDataCenterProjectDataService : IDataCenterProjectDataService
     {
         private readonly List<DataCenterProject> _dataCenters;
 
-        public DataCenterProjectDataService()
+        public DevDataCenterProjectDataService()
         {
             _dataCenters = new List<DataCenterProject>();
 
